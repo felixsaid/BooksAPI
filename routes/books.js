@@ -17,12 +17,15 @@ router.post("/book", function (req, res) {
     "INSERT INTO books (book_title, book_description, book_author) VALUES (?,?,?)",
     [book_title, book_description, book_author],
     function (error, results, fields) {
-      if (error) throw error;
-      return res.send({
-        error: false,
-        data: results,
-        message: "New book has been created successfully.",
-      });
+      if (error) {
+        return res.send({ status: 500, error: error.sqlMessage, data: null });
+      } else {
+        return res.send({
+          error: false,
+          data: results,
+          message: "New book has been created successfully.",
+        });
+      }
     }
   );
 });
@@ -31,14 +34,16 @@ router.post("/book", function (req, res) {
 
 router.get("/books", async function (req, res) {
   await db.query("SELECT * FROM books", function (error, results, fields) {
-    if (error) throw error;
+    if (error) {
+      return res.send({ status: 500, error: error.sqlMessage, data: null });
+    } else {
+      let message = "";
+      if (results === undefined || results.length === 0)
+        message = "No books were found";
+      else message = "Books successfully retrieved";
 
-    let message = "";
-    if (results === undefined || results.length === 0)
-      message = "No books were found";
-    else message = "Books successfully retrieved";
-
-    return res.send({ error: false, data: results, message: message });
+      return res.send({ error: false, data: results, message: message });
+    }
   });
 });
 
@@ -52,23 +57,25 @@ router.get("/book/:id", async function (req, res) {
     results,
     fields
   ) {
-    if (error) throw error;
+    if (error) {
+      return res.send({ status: 500, error: error.sqlMessage, data: null });
+    } else {
+      Object.keys(results).forEach(function (key) {
+        var row = results[key];
+        console.log(row.book_title);
+      });
 
-    Object.keys(results).forEach(function (key) {
-      var row = results[key];
-      console.log(row.book_title);
-    });
+      let message = "";
+      if (results === undefined || results.length === 0)
+        message = `Book with id ${id} was not found`;
+      else message = `Successfully retrieved book with id ${id}`;
 
-    let message = "";
-    if (results === undefined || results.length === 0)
-      message = `Book with id ${id} was not found`;
-    else message = `Successfully retrieved book with id ${id}`;
-
-    return res.send({
-      error: false,
-      data: results,
-      message: message,
-    });
+      return res.send({
+        error: false,
+        data: results,
+        message: message,
+      });
+    }
   });
 });
 
@@ -91,18 +98,20 @@ router.put("/book/:id", async function (req, res) {
     "UPDATE books SET book_title = ?, book_description = ?, book_author = ? WHERE book_id = ?",
     [book_title, book_description, book_author, id],
     function (error, results, fields) {
-      if (error) throw error;
+      if (error) {
+        return res.send({ status: 500, error: error.sqlMessage, data: null });
+      } else {
+        let message = "";
+        if (results.changedRows === 0)
+          message = `Book with id ${id} not found or data is the same`;
+        else message = `Book with id ${id} was successfully updated.`;
 
-      let message = "";
-      if (results.changedRows === 0)
-        message = `Book with id ${id} not found or data is the same`;
-      else message = `Book with id ${id} was successfully updated.`;
-
-      return res.send({
-        error: false,
-        data: results,
-        message: message,
-      });
+        return res.send({
+          error: false,
+          data: results,
+          message: message,
+        });
+      }
     }
   );
 });
@@ -117,14 +126,16 @@ router.delete("/book/:id", async function (req, res) {
     results,
     fields
   ) {
-    if (error) throw error;
+    if (error) {
+      return res.send({ status: 500, error: error.sqlMessage, data: null });
+    } else {
+      let message = "";
+      if (results.affectedRows === 0)
+        message = `Book with id ${id} was not found.`;
+      else message = `Book with id ${id} was succeffully deleted.`;
 
-    let message = "";
-    if (results.affectedRows === 0)
-      message = `Book with id ${id} was not found.`;
-    else message = `Book with id ${id} was succeffully deleted.`;
-
-    return res.send({ error: false, data: results, message: message });
+      return res.send({ error: false, data: results, message: message });
+    }
   });
 });
 
