@@ -1,6 +1,8 @@
 const router = require("express").Router();
 const db = require("../src/db");
 
+const rateLimiterUsingThirdParty = require("../middlewares/rateLimiter");
+
 //create a book
 router.post("/book", function (req, res) {
   let book_title = req.body.book_title;
@@ -32,7 +34,7 @@ router.post("/book", function (req, res) {
 
 //get all books
 
-router.get("/books", async function (req, res) {
+router.get("/books", rateLimiterUsingThirdParty, async function (req, res) {
   await db.query("SELECT * FROM books", function (error, results, fields) {
     if (error) {
       return res.send({ status: 500, error: error.sqlMessage, data: null });
@@ -62,7 +64,7 @@ router.get("/book/:id", async function (req, res) {
     } else {
       Object.keys(results).forEach(function (key) {
         var row = results[key];
-        console.log(row.book_title);
+        //console.log(row.book_title);
       });
 
       let message = "";
